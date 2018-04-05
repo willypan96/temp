@@ -14,13 +14,13 @@
 # import basic packages
 import numpy as np
 # import the heapq package
-from heapq import heappush, heappushpop, nlargest
+from heapq import heappush, heappushpop, nlargest, nsmallest
 # see below for a brief comment on the use of tiebreakers in python heaps
 from itertools import count
 _tiebreaker = count()
 
+import sys
 from copy import deepcopy as copy
-
 # basic numpy configuration
 
 # set random seed
@@ -113,9 +113,9 @@ def propagation_and_random_search_k(source_patches, target_patches,
         r_c = np.arange(0, u_len, 1)
         const = np.power(ALPHA, r_c)
     if odd_iteration:
-        range_y, range_x = range(shape_source[0])[::-1], range(shape_source[1])[::-1]
+        range_y, range_x = range(source_shape[0])[::-1], range(source_shape[1])[::-1]
     else:
-        range_y, range_x = range(shape_source[0]), range(shape_source[1])
+        range_y, range_x = range(source_shape[0]), range(source_shape[1])
     range_k = range(f_heap.shape[2])
     for i in range_y:
         for j in range_x:
@@ -398,12 +398,12 @@ def nlm(target, f_heap, h):
     k = f_k.shape[2]
     exp_D_arr = np.exp(-D_k / (h ** 2))
     z_arr = exp_D_arr.sum(axis=-1)
-    w_arr = exp_D_arr / dim_extend(z_arr)
+    w_arr = exp_D_arr / dm_etd(z_arr)
     trg_rearr_shape = tuple(list(D_k.shape) + [3])
     trg_rearr = np.empty(trg_rearr_shape)
     for i in range(k):
         trg_rearr[..., i, :] = reconstruct_source_from_target(target, f_k[..., i, :])
-    weighted_pixels = trg_rearr * dim_extend(w_arr)
+    weighted_pixels = trg_rearr * dm_etd(w_arr)
     summed_pixels = weighted_pixels.sum(axis=-2)
     denoised = summed_pixels
     #############################################
@@ -417,7 +417,9 @@ def nlm(target, f_heap, h):
 ###  PLACE ADDITIONAL HELPER ROUTINES, IF ###
 ###  ANY, BETWEEN THESE LINES             ###
 #############################################
-
+def dm_etd(arr):
+    new_shape = tuple(list(arr.shape) + [1])
+    return arr.reshape(new_shape)
 
 #############################################
 
